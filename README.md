@@ -32,116 +32,88 @@ STEP-5: Combine all these groups to get the complete cipher text.
 ```
 #include <stdio.h> 
 #include <string.h> 
-#include <stdlib.h> 
-void encryptRailFence(char str[], int rails, char encrypted[]) { 
-int i, j, len, count, code[100][1000]; 
-len = strlen(str); 
-// Initialize the code array to 0 
-for (i = 0; i < rails; i++) { 
-for (j = 0; j < len; j++) { 
-code[i][j] = 0; 
+#include <ctype.h> 
+int keymat[3][3] = { 
+{ 17, 17, 5 }, 
+{ 21, 18, 21 }, 
+{ 2, 2, 19 } 
+}; 
+int invkeymat[3][3] = { 
+{ 4, 9, 15 }, 
+{ 15, 17, 6 }, 
+{ 24, 0, 17 } 
+}; 
+char key[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
+void encode(char *ret, char a, char b, char c) { 
+int x, y, z; 
+int posa = (int)a - 65; 
+int posb = (int)b - 65; 
+int posc = (int)c - 65; 
+x = posa * keymat[0][0] + posb * keymat[1][0] + posc * keymat[2][0]; 
+y = posa * keymat[0][1] + posb * keymat[1][1] + posc * keymat[2][1]; 
+z = posa * keymat[0][2] + posb * keymat[1][2] + posc * keymat[2][2]; 
+ret[0] = key[x % 26]; 
+ret[1] = key[y % 26]; 
+ret[2] = key[z % 26]; 
+ret[3] = '\0'; 
 } 
+void decode(char *ret, char a, char b, char c) { 
+int x, y, z; 
+int posa = (int)a - 65; 
+int posb = (int)b - 65; 
+int posc = (int)c - 65; 
+x = posa * invkeymat[0][0] + posb * invkeymat[1][0] + posc * invkeymat[2][0]; 
+y = posa * invkeymat[0][1] + posb * invkeymat[1][1] + posc * invkeymat[2][1]; 
+z = posa * invkeymat[0][2] + posb * invkeymat[1][2] + posc * invkeymat[2][2]; 
+ret[0] = key[(x % 26 < 0) ? (26 + x % 26) : (x % 26)]; 
+ret[1] = key[(y % 26 < 0) ? (26 + y % 26) : (y % 26)]; 
+ret[2] = key[(z % 26 < 0) ? (26 + z % 26) : (z % 26)]; 
+ret[3] = '\0'; 
 } 
-count = 0; 
-j = 0; 
-while (j < len) { 
-if (count % 2 == 0) { // Moving down the rails 
-for (i = 0; i < rails && j < len; i++) { 
-code[i][j] = (int)str[j]; 
-j++; 
-} 
-} else { // Moving up the rails 
-for (i = rails - 2; i > 0 && j < len; i--) { 
-code[i][j] = (int)str[j]; 
-j++; 
-} 
-} 
-count++; 
-} 
-int pos = 0; 
-for (i = 0; i < rails; i++) { 
-for (j = 0; j < len; j++) { 
-if (code[i][j] != 0) { 
-encrypted[pos++] = code[i][j]; 
-} 
-} 
-} 
-encrypted[pos] = '\0';  
-} 
-void decryptRailFence(char str[], int rails, char decrypted[]) { 
-int i, j, len, count, code[100][1000], pos = 0; 
-len = strlen(str); 
-// Initialize the code array to 0 
-for (i = 0; i < rails; i++) { 
-for (j = 0; j < len; j++) { 
-code[i][j] = 0; 
-} 
-} 
-count = 0; 
-j = 0; 
-while (j < len) { 
-if (count % 2 == 0) {  
-for (i = 0; i < rails && j < len; i++) { 
-code[i][j] = 1; 
-j++; 
-} 
-} else {  
-for (i = rails - 2; i > 0 && j < len; i--) { 
-code[i][j] = 1; 
-j++; 
-} 
-} 
-count++; 
-} 
-for (i = 0; i < rails; i++) { 
-for (j = 0; j < len; j++) { 
-if (code[i][j] == 1) { 
-code[i][j] = str[pos++]; 
-} 
-} 
-} 
-pos = 0; 
-count = 0; 
-j = 0; 
-while (j < len) { 
-if (count % 2 == 0) { // Moving down the rails 
-for (i = 0; i < rails && j < len; i++) { 
-if (code[i][j] != 0) { 
-decrypted[pos++] = code[i][j]; 
-} 
-j++; 
-} 
-} else { // Moving up the rails 
-for (i = rails - 2; i > 0 && j < len; i--) { 
-if (code[i][j] != 0) { 
-decrypted[pos++] = code[i][j]; 
-} 
-j++; 
-} 
-} 
-count++; 
-} 
-decrypted[pos] = '\0';  
-} 
+ 
 int main() { 
-char str[1000], encrypted[1000], decrypted[1000]; 
-int rails; 
-printf("Simulating Rail Fence Cipher\n"); 
-printf("Enter a Secret Message: "); 
-fgets(str, sizeof(str), stdin); 
-str[strcspn(str, "\n")] = 0;  
-printf("Enter number of rails: "); 
-scanf("%d", &rails); 
-encryptRailFence(str, rails, encrypted); 
-printf("Encrypted Message: %s\n", encrypted); 
-decryptRailFence(encrypted, rails, decrypted); 
-printf("Decrypted Message: %s\n", decrypted); 
+    char msg[1000]; 
+    char enc[1000] = ""; 
+    char dec[1000] = ""; 
+    int n; 
+     
+    printf("enter text:"); 
+    scanf("%s",msg); 
+    printf("Simulation of Hill Cipher\n"); 
+     
+     
+    for (int i = 0; i < strlen(msg); i++) { 
+        msg[i] = toupper(msg[i]); 
+    } 
+     
+    n = strlen(msg) % 3; 
+    if (n != 0) { 
+        for (int i = 1; i <= (3 - n); i++) { 
+            strcat(msg, "X"); 
+        } 
+    } 
+     
+    printf("Padded message : %s\n", msg); 
+     
+    for (int i = 0; i < strlen(msg); i += 3) { 
+char temp[4]; 
+encode(temp, msg[i], msg[i + 1], msg[i + 2]); 
+strcat(enc, temp); 
+} 
+printf("Encoded message : %s\n", enc); 
+for (int i = 0; i < strlen(enc); i += 3) { 
+char temp[4]; 
+decode(temp, enc[i], enc[i + 1], enc[i + 2]); 
+strcat(dec, temp); 
+} 
+printf("Decoded message : %s\n", dec); 
 return 0; 
 }
+
 ```
 
 ## OUTPUT
-<img width="1431" height="886" alt="Screenshot 2026-02-02 111644" src="https://github.com/user-attachments/assets/8911c2a8-40f3-4dcf-88de-c3d89a8c851b" />
+<<img width="1554" height="779" alt="image" src="https://github.com/user-attachments/assets/7fd5cebf-a853-408b-a9ec-8a082d6274ac" />
 
 
 ## RESULT
